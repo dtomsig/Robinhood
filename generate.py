@@ -2,10 +2,13 @@
 
 import datetime, os, requests, stock_record
 
+#0. This block allows the program to be called from any working directory. 
 abspath = os.path.abspath(__file__)
 dname = os.path.dirname(abspath)
 os.chdir(dname)
 
+
+#1. Obtains initial credentials and uses them to get transaction data.
 username             = input("\nEnter your Robinhood username: ") 
 password             = input("Enter your Robinhood password: ")
 earliest_date        = input("Enter the earliest date of transaction data " +
@@ -32,8 +35,11 @@ dividend_data = requests.get("https://api.robinhood.com/dividends/",
 order_data = requests.get("https://api.robinhood.com/orders/", headers = 
                           header).json()
                           
-#3. Begin file generatione. 
+                          
+#2. QIF/OFX file generation begins here. 
 stock_record = stock_record.Stock_Record()
+if not os.path.exists("./output_files"):
+    os.makedirs("./output_files")
 transaction_file = open("./output_files/transactions.qif", "w+")
 securities_file = open("./output_files/securities.ofx", "w+")
 instrument_id_list = []
@@ -44,8 +50,11 @@ transaction_file.write("TInvst\n")
 transaction_file.write("^\n")
 transaction_file.write("!Type:Invst\n")
 
-#4. Cycle through order data.
 
+#3. Cycle through orders (stock sales and purhcases) and writes information to 
+#   QIF file. Only transactions occurring on or after the entered date will be 
+#   written to QIF. However, all instruments that are found will be stored to
+#   be used to construct the OFX file.
 for order in reversed(order_data["results"]):
 	
     if(order["state"] != "filled"):
@@ -115,7 +124,12 @@ for order in reversed(order_data["results"]):
             transaction_file.write("T" + str(long_term_gain) + "\n")
             transaction_file.write("^\n")   
 
-#5. Obtain dividend data, reversed to have the earliest print first.
+
+#4. Cycle through dividends and writes to QIF file. They are reversed to have 
+#   the earliest write to the file first. Again, only dividends occuring on or
+#   after the date entered by the user will be written. However, all instruments
+#   involved in any transaction regardless of date will be stored to be used
+#   to construct the OFX file.
 for dividend in reversed(dividend_data["results"]):
     if(dividend["paid_at"] == None):
         continue
@@ -138,8 +152,12 @@ for dividend in reversed(dividend_data["results"]):
     transaction_file.write("D" + dividend_date + "\n") 
     transaction_file.write("T" + dividend_amount + "\n")
     transaction_file.write("^\n")
-    exit(0)
+    
 
+#5. Construct the OFX file from securities that were involved in dividend or 
+#   buy and sale transactions. The earliest date does not affect the entered
+#   instruments. Any instrument that was involved in a transaction or dividend
+#   will appear in the OFX file.
 securities_file.write("<OFX>\n")
 securities_file.write("<SECLISTMSGSRSV1>\n")
 securities_file.write("<SECLIST>\n")
@@ -177,7 +195,8 @@ securities_file.write("</SECLISTMSGSRSV1>\n")
 securities_file.write("</OFX>\n")
 
 
-#Program termination
+#6. Terminates the program and logs out of Robinhood api.
 transaction_file.close()
 securities_file.close()
 requests.get("https://api.robinhood.com/logout/", headers = header)
+exit(0)
