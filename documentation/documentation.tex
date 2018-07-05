@@ -1,0 +1,72 @@
+\documentclass{article}
+    \usepackage[left = 1in, right = 1 in, top = 4 in]{geometry}
+    \usepackage{hyperref}
+    \usepackage{tcolorbox}
+    \tcbset{colframe = white}
+    \hypersetup
+    {
+        pdfborder            = {0 0 0},
+        colorlinks           = true,
+        linkcolor            = [RGB]{46 46 184},
+        linktoc              = all,
+        urlcolor             = blue,   
+    }
+    \title{\textbf{Robinhood Broker Transactions OFX and QIF File Generation}}
+    \author{Diego Tomsig}
+    \date{06-22-2018}
+    \begin{document}
+        \maketitle
+        \newpage
+        \newgeometry{left = 1 in, right = 1 in, top = 1 in, bottom = 1 in}
+        \tableofcontents
+        \newpage
+        \section{Introduction}
+            Generate.py produces two output files. The first is a QIF file 
+            describing stock dividends, stock purchases, stock sales and short 
+            and long term capital gains and losses for a given Robinhood 
+            brokerage account. These transactions are those that occur on or 
+            after an entered date. The reason why an entered date is required is
+            for GnuCash importing and is described in that section.
+            \newline
+            \newline
+            The second is an OFX file that describes all securities that are 
+            encountered in the entire Robinhood history. This helps importing 
+            the above file into GnuCash. It helps with the automatic creation of
+            securities in GnuCash. It is suggested to import this first before 
+            the QIF file. This is because the securities will be imported and 
+            created before the transactions relating to those securities will 
+            have occurred. This prevents the user from having to manually enter 
+            security data if they were to enter transactions first.
+            \newline
+            \newline
+            The overall purpose of this program is importing stock data from 
+            Robinhood brokerage into GnuCash. These output files are located in
+            the “output files” directory.
+        \newpage
+        \section{Installation \& Usage}
+            The example presented was done on Debian 9. The steps are simple 
+            enough to be done on any operating system.
+            \newline
+            \begin{enumerate}
+                \item
+                    Install python 3.3 or above.
+                    \newline  
+                    \begin{tcolorbox}[colback = cyan] 
+                        sudo apt-get install python3
+                    \end{tcolorbox}
+                \item
+                    Perform clone.
+                    \newline  
+                    \begin{tcolorbox}[colback = cyan] 
+                        sudo git clone https://github.com/dtomsig/Robinhood.git
+                    \end{tcolorbox}
+                \item
+                    Run program.
+                    \newline  
+                    \begin{tcolorbox}[colback = cyan] 
+                        sudo python3 generate.py
+                    \end{tcolorbox}
+            \end{enumerate}
+        \newpage
+        \section{Importing Into GnuCash}
+    \end{document}
